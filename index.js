@@ -22,8 +22,11 @@ const contract = new web3.eth.Contract(
 );
 const privateKey = new Buffer(TOKEN_CONTRACT_OWNER_PRIVATE_KEY, 'hex');
 
+const NodeCache = require( "node-cache" );
+const faucetCache = new NodeCache( { stdTTL: 86400, checkperiod: 120 } );
+
 async function generateTokensFromContract(recipient) {
-  const callData = contract.methods.generateTokens(recipient, 5000000000000000000).encodeABI();
+  const callData = contract.methods.generateTokens(recipient, 100000000000000000000).encodeABI();
   const gasPrice = await web3.eth.getGasPrice();
   const gasPriceHex = web3.utils.toHex(gasPrice);
   const nonce = await web3.eth.getTransactionCount(TOKEN_CONTRACT_OWNER_ADDRESS);
@@ -57,12 +60,18 @@ app.get('/faucet', function (req, res) {
 
   const address = req.param('address');
 
-  generateTokensFromContract(address)
-    .then(function (f) {
-      res.setHeader('Content-Type', 'text/plain');
-      res.send("Transferring 5 FND to:" + address + '. For verification: https://rinkeby.etherscan.io/tx/' + f.transactionHash);
-    }).catch(function (error) {
-    res.status(500).send(error.message);
-  });
+  if(!faucetCache.get(address)) {
+    generateTokensFromContract(address)
+      .then(function (f) {
+        faucetCache.set(address, true);
+        res.setHeader('Content-Type', 'text/plain');
+        res.send("Transferring 100 FND to:" + address + '. For verification: https://rinkeby.etherscan.io/tx/' + f.transactionHash);
+      }).catch(function (error) {
+      res.status(500).send(error.message);
+    });
+  } else {
+    res.send("You already asked for some FND tokens, you can use the faucet once every 24 hours!");
+  }
+
 
 });
