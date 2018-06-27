@@ -74,7 +74,7 @@ app.get('/faucet', function (req, res) {
       res.status(500).send(error.message);
     });
   } else {
-    res.send("You already asked for some FND tokens, you can use the faucet once every 24 hours!");
+    res.status(412).send("You already asked for some FND tokens, you can use the faucet once every 24 hours!");
   }
 
 
