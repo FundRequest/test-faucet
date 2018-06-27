@@ -1,4 +1,5 @@
 const commandLineArgs = require('command-line-args');
+const cors = require('cors');
 const optionDefinitions = [
   {name: 'tokenContractOwnerPrivateKey', type: String},
   {name: 'tokenContractOwnerAddress', type: String},
@@ -50,6 +51,7 @@ async function generateTokensFromContract(recipient) {
 
 const express = require('express');
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3002;
 
 app.listen(port);
